@@ -1,0 +1,99 @@
+MODEL_NAME: cie
+DATASET_NAME: synthetic
+
+DATASET_FULL_NAME: MixedSynthetic
+
+MODULE: models.CIE.model
+
+BACKBONE: NoBackbone
+
+CONFIG_NAME: synthetic_cie
+CONFIG_DESCRIPTION: no backbone
+
+BATCH_SIZE: 8
+DATALOADER_NUM: 4
+
+RANDOM_SEED: 123
+
+# available GPU ids
+GPUS:
+  - 0
+  #- 1
+
+PROBLEM:
+  TYPE: 2GM
+  RESCALE:
+    - 256
+    - 256
+  SRC_OUTLIER: True
+  TGT_OUTLIER: True
+  FILTER: unfiltered
+
+SSL:
+  USE_GLOBAL: False
+
+# Graph construction settings
+GRAPH:
+  SRC_GRAPH_CONSTRUCT: tri
+  TGT_GRAPH_CONSTRUCT: tri
+  SYM_ADJACENCY: True
+
+# Synthetic dataset settings
+SYNTHETIC:
+  MIXED_DATA_NUM: 10
+  DIM: 2  # synthetic feature dimension
+  TRAIN_NUM: 200  # number of training samples
+  TEST_NUM: 100  # number of testing samples
+  KPT_NUM: 10  # keypoint num
+  OUT_NUM: 0
+  FEAT_GT_UNIFORM: 1.  # feature vector ~ uniform(-X, X)
+  FEAT_NOISE_STD: 1.5  # feature noise ~ N(0, X^2)
+  POS_GT_UNIFORM: 1.  # keypoint position ~ uniform(0, X)
+  POS_AFFINE_DXY: 0. #50.  # t_x, t_y ~ uniform(-X, X)
+  POS_AFFINE_S_LOW: .8 #0.8  # s ~ uniform(S_LOW, S_HIGH)
+  POS_AFFINE_S_HIGH: 1.2 #1.2
+  POS_AFFINE_DTHETA: 0. #60.  # theta ~ uniform(-X, X)
+  POS_NOISE_STD: 0.02  # position noise ~ N(0, X^2)
+
+# Training settings
+TRAIN:
+  # start, end epochs
+  START_EPOCH: 0
+  NUM_EPOCHS: 30
+
+  LOSS_FUNC: 
+    - hung
+
+  # learning rate
+  LR: 1.0e-4
+  MOMENTUM: 0.9
+  LR_DECAY: 0.2
+  LR_STEP:  # (in epochs)
+    - 20
+
+  EPOCH_ITERS: 200  # iterations per epoch
+
+  CLASS: none
+
+  # * validation and early stopping
+  SPLIT: 0.8
+  DELTA: 0.001
+  PATIENCE: 1
+
+  SAMPLES:
+    - 3200
+    - 1600
+
+# Evaluation settings
+EVAL:
+  EPOCH: 30  # epoch to be tested
+  SAMPLES: 100  # number of tested pairs for each class
+
+# CIE model parameters
+CIE:
+  FEATURE_CHANNEL: 1
+  SK_ITER_NUM: 20
+  SK_EPSILON: 1.0e-10
+  SK_TAU: .005
+  GNN_FEAT: 1
+  GNN_LAYER: 2

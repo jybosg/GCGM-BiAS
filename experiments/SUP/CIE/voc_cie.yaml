@@ -1,0 +1,81 @@
+MODEL_NAME: cie
+DATASET_NAME: voc
+
+DATASET_FULL_NAME: PascalVOCSplit
+
+MODULE: models.CIE.model
+
+BACKBONE: VGG16_bn
+
+CONFIG_NAME: voc_cie
+CONFIG_DESCRIPTION: finetune backbone
+
+BATCH_SIZE: 8
+DATALOADER_NUM: 2
+
+RANDOM_SEED: 123
+
+
+# available GPU ids
+GPUS:
+  - 0
+  #- 1
+
+# Problem configuration
+PROBLEM:
+  TYPE: 2GM
+  RESCALE:  # rescaled image size
+    - 256
+    - 256
+  SRC_OUTLIER: False
+  TGT_OUTLIER: False
+  FILTER: intersection
+
+# Graph construction settings
+GRAPH:
+  SRC_GRAPH_CONSTRUCT: tri
+  TGT_GRAPH_CONSTRUCT: tri
+  SYM_ADJACENCY: True
+
+# Training settings
+TRAIN:
+  # start, end epochs
+  START_EPOCH: 0
+  NUM_EPOCHS: 30
+
+  LOSS_FUNC: 
+    - hung
+
+  # learning rate
+  LR: 1.0e-4
+  MOMENTUM: 0.9
+  LR_DECAY: 0.2
+  LR_STEP:  # (in epochs)
+    - 20
+
+  EPOCH_ITERS: 2000  # iterations per epoch
+
+  CLASS: none
+
+  # * validation and early stopping
+  SPLIT: 0.8
+  DELTA: 0.001
+  PATIENCE: 1
+
+  SAMPLES:
+    - 16000
+    - 3200
+
+# Evaluation settings
+EVAL:
+  EPOCH: 10  # epoch to be tested
+  SAMPLES: 1000  # number of tested pairs for each class
+
+# CIE model parameters
+CIE:
+  FEATURE_CHANNEL: 512 # 2 * FEATURE_CHANNEL = AIDS_Noisy.DIM
+  SK_ITER_NUM: 20
+  SK_EPSILON: 1.0e-10
+  SK_TAU: .005
+  GNN_FEAT: 2048 # 4 * FEATURE_CHANNEL
+  GNN_LAYER: 2

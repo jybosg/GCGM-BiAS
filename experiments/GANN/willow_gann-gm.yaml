@@ -1,0 +1,98 @@
+MODEL_NAME: vgg16_gann-gm
+DATASET_NAME: willow
+
+DATASET_FULL_NAME: WillowObjectSplit
+
+MODULE: models.GANN.model
+
+BACKBONE: VGG16_bn
+
+CONFIG_NAME: willow_gann-gm
+CONFIG_DESCRIPTION: finetune backbone; gamm-gm
+
+BATCH_SIZE: 1
+DATALOADER_NUM: 0
+FP16: False
+
+RANDOM_SEED: 123
+
+# available GPU ids
+GPUS:
+  - 0
+  
+# Problem configuration
+PROBLEM:
+  TYPE: 2GM
+  RESCALE:  # rescaled image size
+    - 256
+    - 256
+  NUM_GRAPHS: 2
+  SRC_OUTLIER: True
+  TGT_OUTLIER: True
+  FILTER: unfiltered
+
+# Graph construction settings
+GRAPH:
+  SRC_GRAPH_CONSTRUCT: fc
+  TGT_GRAPH_CONSTRUCT: fc
+  SYM_ADJACENCY: True
+
+# Willow dataset settings
+WillowObjectSplit:
+  TRAIN_NUM: 20
+  SPLIT_OFFSET: 0  # the starting index of training set
+
+# Training settings
+TRAIN:
+  # start, end epochs
+  START_EPOCH: 0
+  NUM_EPOCHS: 10
+
+  LOSS_FUNC: 
+    - perm
+
+  # * no sconv
+  FINETUNE_ENCODER: False
+  
+  # learning rate
+  LR: 1.0e-3
+  MOMENTUM: 0.9
+  LR_DECAY: 0.1
+  LR_STEP:  # (in epochs)
+    - 2
+
+  EPOCH_ITERS: 100  # iterations per epoch
+
+  CLASS: none
+
+  # * validation and early stopping
+  SPLIT: 0.8
+  DELTA: 0.001
+  PATIENCE: 1
+
+  SAMPLES:
+    - 100 # 800
+    - 20 # 160
+
+# Evaluation settings
+EVAL:
+  EPOCH: 10  # epoch to be tested
+  SAMPLES: 100 # number of tests for each class
+
+# model parameters
+GANN:
+  FEATURE_CHANNEL: 1024
+  SK_ITER_NUM: 20
+  SK_TAU: 0.05
+  SK_EPSILON: 1.0e-10
+  UNIV_SIZE: 10
+  MGM_ITER:
+    - 500
+  INIT_TAU:
+    - 0.1
+  GAMMA: 0.8
+  CONVERGE_TOL: 1.0e-3
+  MIN_TAU:
+    - 1.0e-2
+  SCALE_FACTOR: 1.
+  QUAD_WEIGHT: 0.5 #1.

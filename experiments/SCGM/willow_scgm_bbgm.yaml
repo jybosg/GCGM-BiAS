@@ -1,0 +1,136 @@
+MODEL_NAME: vgg16_scgm_bbgm
+DATASET_NAME: willow
+DATASET_FULL_NAME: WillowObjectSplit
+
+CONFIG_NAME: willow_scgm_bbgm
+CONFIG_DESCRIPTION: finetune backbone; enable image augmentation (within dataloader)
+
+MODULE: models.SCGM.model
+
+BACKBONE: VGG16_bn_final
+
+BATCH_SIZE: 8
+DATALOADER_NUM: 2
+FP16: False
+
+RANDOM_SEED: 123
+
+STATISTIC_STEP: 100
+
+# available GPU ids
+GPUS:
+  - 0
+#  - 1
+
+# Problem configuration
+PROBLEM:
+  TYPE: GCL
+  RESCALE:  # rescaled image size
+    - 256
+    - 256
+  SRC_OUTLIER: True
+  TGT_OUTLIER: True
+  SSL: True
+  FILTER: unfiltered
+
+SSL:
+  # * disable image augmentation
+  IMAGE_AUGMENTATION: True
+  DOUBLE: False
+  PADDING_RATE: 0.4
+  CROP_RATE_LB: 0.3
+  CROP_RATE_UB: 1.0
+  SCALE_RATIO_LB: 0.75
+  SCALE_RATIO_UB: 1.33
+  VERTICAL_FLIP_RATE: 0.05
+  HORIZONTAL_FLIP_RATE: 0.25
+  COLOR_JITTER:
+    - 0.4
+    - 0.4
+    - 0.4
+    - 0.1
+  COLOR_JITTER_RATE: 0.8
+  GRAY_SCALE: 0.2
+  GAUSSIAN_BLUR_RATE: 25
+  GAUSSIAN_BLUR_SIGMA:
+    - 0.1
+    - 2.0
+  MIX_RATE: 0.4
+  MIX_DETACH: False
+  C_LOSS: True
+  C_LOSS_RATE: 0.2
+  USE_GLOBAL: False
+  # * projection head
+  IN_DIM: 1024
+  OUT_DIM: 256
+
+# Graph construction settings
+GRAPH:
+  SRC_GRAPH_CONSTRUCT: tri
+  TGT_GRAPH_CONSTRUCT: tri
+  SYM_ADJACENCY: True
+
+# Willow object class dataset configuration
+WillowObjectSplit:
+  TRAIN_NUM: 20  # number of images for training set
+  SPLIT_OFFSET: 0  # the starting index of training set
+
+# Training settings
+TRAIN:
+  # start, end epochs
+  START_EPOCH: 0
+  NUM_EPOCHS: 10
+
+  LOSS_FUNC: 
+    - hamming
+
+  OPTIMIZER: Adam
+
+  # learning rate
+  # * backbone
+  FINETUNE_BACKBONE: True
+  SEPARATE_BACKBONE_LR: True
+  BACKBONE_LR: 2.e-5
+
+  # * sconv
+  FINETUNE_ENCODER: True
+  SEPARATE_ENCODER_LR: False
+  ENCODER_LR: 1.e-4
+
+  # learning rate
+  LR: 1.e-4
+  MOMENTUM: 0.9
+  LR_DECAY: 0.5
+  LR_STEP:  # (in epochs)
+    - 1
+
+  # * validation and early stopping
+  SPLIT: 0.8
+  DELTA: 0.002
+  PATIENCE: 2
+
+  SAMPLES:
+    - 800
+    - 160
+
+  EPOCH_ITERS: 100  # iterations per epoch
+
+  CLASS: none
+
+# Evaluation settings
+EVAL:
+  EPOCH: 5  # epoch to be tested
+  SAMPLES: 100  # number of tested pairs for each class
+
+# model parameters
+BBGM:
+  FEATURE_CHANNEL: 1024
+  SOLVER_NAME: LPMP
+  LAMBDA_VAL: 80.0
+  SOLVER_PARAMS:
+    timeout: 1000
+    primalComputationInterval: 10
+    maxIter: 100
+  # * new hyperparameters
+  EDGE_FEATURE: cat
+  GLOBAL_READOUT: mean

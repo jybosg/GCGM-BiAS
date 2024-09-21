@@ -1,0 +1,142 @@
+MODEL_NAME: vgg16_scgm_ngmv2
+DATASET_NAME: sPair71k
+
+DATASET_FULL_NAME: SPair71k
+
+MODULE: models.SCGM.model_v2
+
+BACKBONE: VGG16_bn_final
+
+CONFIG_NAME: spair71k_scgm_ngmv2
+CONFIG_DESCRIPTION: finetune backbone; enable image augmentation (within dataloader)
+
+BATCH_SIZE: 8
+DATALOADER_NUM: 2
+FP16: False
+
+RANDOM_SEED: 123
+
+# available GPU ids
+GPUS:
+  - 0
+#  - 1
+
+# Problem configuration
+PROBLEM:
+  TYPE: GCL
+  RESCALE:  # rescaled image size
+    - 256
+    - 256
+  SRC_OUTLIER: True
+  TGT_OUTLIER: True
+  SSL: True
+  FILTER: unfiltered
+
+SSL:
+  # * disable image augmentation
+  IMAGE_AUGMENTATION: True
+  DOUBLE: False
+  PADDING_RATE: 0.5
+  CROP_RATE_LB: 0.3
+  CROP_RATE_UB: 1.0
+  SCALE_RATIO_LB: 0.75
+  SCALE_RATIO_UB: 1.33
+  VERTICAL_FLIP_RATE: 0.05
+  HORIZONTAL_FLIP_RATE: 0.25
+  COLOR_JITTER:
+    - 0.4
+    - 0.4
+    - 0.4
+    - 0.1
+  COLOR_JITTER_RATE: 0.8
+  GRAY_SCALE: 0.2
+  GAUSSIAN_BLUR_RATE: 25
+  GAUSSIAN_BLUR_SIGMA:
+    - 0.1
+    - 2.0
+  MIX_RATE: 0.4
+  MIX_DETACH: False
+  C_LOSS: True
+  C_LOSS_RATE: 0.1
+  USE_GLOBAL: True
+  # * projection head
+  IN_DIM: 1024
+  OUT_DIM: 256
+
+# Graph construction settings
+GRAPH:
+  SRC_GRAPH_CONSTRUCT: tri
+  TGT_GRAPH_CONSTRUCT: tri
+  SYM_ADJACENCY: True
+
+# Training settings
+TRAIN:
+  # start, end epochs
+  START_EPOCH: 0
+  NUM_EPOCHS: 40
+
+  LOSS_FUNC: 
+    - perm
+
+  OPTIMIZER: Adam
+
+  # learning rate
+  FINETUNE_BACKBONE: True
+  SEPARATE_BACKBONE_LR: True
+  BACKBONE_LR: 1.e-5
+
+  # * sconv
+  FINETUNE_ENCODER: True
+  SEPARATE_ENCODER_LR: False
+  ENCODER_LR: 1.e-4
+
+  LR: 1.e-4
+  MOMENTUM: 0.9
+  LR_DECAY: 0.5
+  LR_STEP:  # (in epochs)
+    # - 1
+    # - 2
+    # - 3
+    # - 4
+    # - 5
+    - 2
+    - 4
+    - 6
+    - 8
+
+  EPOCH_ITERS: 500  # iterations per epoch
+
+  CLASS: none
+
+  # * validation and early stopping
+  SPLIT: 0.8
+  DELTA: 0.001
+  PATIENCE: 1
+
+  SAMPLES:
+    - 8000
+    - 1600
+
+# Evaluation settings
+EVAL:
+  EPOCH: 40  # epoch to be tested
+  SAMPLES: 1000  # number of tested pairs for each class
+
+# model parameters
+NGM:
+  EDGE_FEATURE: cat
+  FEATURE_CHANNEL: 512
+  SK_ITER_NUM: 20
+  SK_EPSILON: 1.0e-10
+  SK_TAU: 0.05
+  GNN_FEAT:
+    - 16
+    - 16
+    - 16
+  GNN_LAYER: 3
+  GAUSSIAN_SIGMA: 1.
+  SK_EMB: 1
+  FIRST_ORDER: True
+  EDGE_EMB: False
+  # * new hyperparameters
+  GLOBAL_READOUT: mean

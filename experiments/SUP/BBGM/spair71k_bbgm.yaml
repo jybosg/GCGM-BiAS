@@ -1,0 +1,95 @@
+MODEL_NAME: vgg16_bbgm
+DATASET_NAME: spair71k
+
+DATASET_FULL_NAME: SPair71k
+
+MODULE: models.BBGM.model
+
+BACKBONE: VGG16_bn_final
+
+CONFIG_NAME: spair71k_bbgm
+CONFIG_DESCRIPTION: finetune backbone
+
+BATCH_SIZE: 8
+DATALOADER_NUM: 2
+FP16: False
+
+RANDOM_SEED: 123
+
+STATISTIC_STEP: 100
+
+# available GPU ids
+GPUS:
+  - 0
+
+# Problem configuration
+PROBLEM:
+  TYPE: 2GM
+  RESCALE:  # rescaled image size
+    - 256
+    - 256
+  SRC_OUTLIER: True
+  TGT_OUTLIER: True
+  FILTER: unfiltered
+
+SSL:
+  USE_GLOBAL: False
+
+# Graph construction settings
+GRAPH:
+  SRC_GRAPH_CONSTRUCT: tri
+  TGT_GRAPH_CONSTRUCT: tri
+  SYM_ADJACENCY: True
+
+# Training settings
+TRAIN:
+  # start, end epochs
+  START_EPOCH: 0
+  NUM_EPOCHS: 10
+
+  LOSS_FUNC: 
+    - hamming
+
+  OPTIMIZER: Adam
+
+  # learning rate
+  LR: 2.e-3
+  SEPARATE_BACKBONE_LR: True
+  BACKBONE_LR: 2.e-5
+  MOMENTUM: 0.9
+  LR_DECAY: 0.5
+  LR_STEP:  # (in epochs)
+    - 2
+    - 4
+    - 6
+    - 8
+    - 10
+
+  EPOCH_ITERS: 400  # iterations per epoch
+
+  CLASS: none
+
+  # * validation and early stopping
+  SPLIT: 0.8
+  DELTA: 0.001
+  PATIENCE: 1
+
+  SAMPLES:
+    - 3200
+    - 640
+
+# Evaluation settings
+EVAL:
+  EPOCH: 10  # epoch to be tested
+  SAMPLES: 1000  # number of tested pairs for each class
+
+# model parameters
+BBGM:
+  FEATURE_CHANNEL: 1024
+  SOLVER_NAME: LPMP
+  LAMBDA_VAL: 80.0
+  SOLVER_PARAMS:
+    timeout: 1000
+    primalComputationInterval: 10
+    maxIter: 100
+  EDGE_FEATURE: cat

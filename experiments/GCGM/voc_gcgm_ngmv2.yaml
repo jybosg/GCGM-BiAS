@@ -1,0 +1,191 @@
+MODEL_NAME: vgg16_gcgm_ngmv2
+DATASET_NAME: voc
+
+DATASET_FULL_NAME: PascalVOCSplit
+
+MODULE: models.GCGM.model
+
+BACKBONE: VGG16_bn
+
+CONFIG_NAME: voc_gcgm_ngmv2
+CONFIG_DESCRIPTION: batch 32; 10 epochs; unfiltered; tri graphs for both src and tgt; randomized augmentations; with projection head; larger batch size; single gpu; 4 workers;
+
+BATCH_SIZE: 32
+DATALOADER_NUM: 4
+FP16: False
+
+RANDOM_SEED: 2
+
+# available GPU ids
+GPUS:
+  - 0
+
+# Problem configuration
+PROBLEM:
+  TYPE: GCL
+  RESCALE:  # rescaled image size
+    - 256
+    - 256
+  SRC_OUTLIER: True
+  TGT_OUTLIER: True
+  SSL: True
+  FILTER: unfiltered
+
+SSL:
+  # * disable image augmentation
+  IMAGE_AUGMENTATION: False
+  # DOUBLE: False
+  # PADDING_RATE: 0.5
+  # CROP_RATE_LB: 0.3
+  # CROP_RATE_UB: 1.0
+  # SCALE_RATIO_LB: 0.75
+  # SCALE_RATIO_UB: 1.33
+  # VERTICAL_FLIP_RATE: 0.05
+  # HORIZONTAL_FLIP_RATE: 0.25
+  # COLOR_JITTER:
+  #   - 0.4
+  #   - 0.4
+  #   - 0.4
+  #   - 0.1
+  # COLOR_JITTER_RATE: 0.8
+  # GRAY_SCALE: 0.2
+  # GAUSSIAN_BLUR_RATE: 25
+  # GAUSSIAN_BLUR_SIGMA:
+  #   - 0.1
+  #   - 2.0
+  MIX_DETACH: False
+  C_LOSS: True
+
+# Graph construction settings
+GRAPH:
+  SRC_GRAPH_CONSTRUCT: tri
+  TGT_GRAPH_CONSTRUCT: tri
+  SYM_ADJACENCY: True
+
+# Training settings
+TRAIN:
+  # start, end epochs
+  START_EPOCH: 0
+  NUM_EPOCHS: 10
+
+  LOSS_FUNC:
+    - nodeagreement
+    - perm
+
+  # * optimizer
+  OPTIMIZER: Adam
+  WEIGHT_DECAY: 1.e-5
+
+  # * backbone
+  FINETUNE_BACKBONE: False
+  SEPARATE_BACKBONE_LR: True
+  BACKBONE_LR: 1.e-5
+
+  # * encoder
+  FINETUNE_ENCODER: True
+  SEPARATE_ENCODER_LR: False
+  ENCODER_LR: 1.e-4
+
+  # * lr
+  LR: 1.e-4
+  MOMENTUM: 0.9
+  LR_DECAY: 0.5
+  LR_STEP:  # (in epochs)
+    - 1
+    - 2
+    - 3
+    - 4
+
+  EPOCH_ITERS: 500  # iterations per epoch
+
+  CLASS: none
+
+  # * validation and early stopping
+  SPLIT: 0.8 # increase validation set size to avoid false high validation acc
+  PATIENCE: 1
+  DELTA: 0.001
+
+  SAMPLES:
+    - 3200
+    - 1600
+
+# Evaluation settings
+EVAL:
+  EPOCH: 30  # epoch to be tested
+  SAMPLES: 1000  # number of tested pairs for each class
+
+# model parameters
+GCGM:
+  EDGE_FEATURE: cat
+  # node feature size before the affinity layer
+  FEATURE_CHANNEL: 512
+  SK_ITER_NUM: 20
+  SK_EPSILON: 1.0e-10
+  SK_TAU: 0.05
+  GNN_FEAT:
+    - 16
+    - 16
+    - 16
+  GNN_LAYER: 3
+  GAUSSIAN_SIGMA: 1.
+  SK_EMB: 1
+  FIRST_ORDER: True
+  EDGE_EMB: False
+  
+  # encoder
+  ENCODER_STRUCTURE: Cur
+  # * IN_CHANNELS = 2 * FEATURE_CHANNEL
+  IN_CHANNELS: 1024
+  INTER_CHANNELS: 1024
+  OUT_CHANNELS: 1024
+  ACTIVATION: relu
+  SKIP: True
+  PROJECT: FALSE
+  K: 2
+  AGGR: mean
+  GLOBAL_READOUT: mean
+  # * model hyperparameters
+  BASE_MODEL: SAGEConv
+  DROPOUT: 0.2
+
+  # * node agreement loss
+  # temperature parameter
+  TAU: 0.07
+  # projection head `math: g(\cdot)`
+  PROJECTION_HEAD: True
+  PROJECTION_CHANNELS: 256
+  BIAS: True
+  PROJECTION_STRUCTURE: SimCLR
+
+  USE_GLOBAL: True
+  C_LOSS_RATE: 1
+
+AUGMENTATION:
+  MIXUP: 
+    - "random, 128, (0.1, 0.9)"
+  EDGES_INSERTION: 
+    - "random, 128, (0.1, 0.9)"
+  EDGE_REMOVING: 
+    - "random, 128, (0.1, 0.9)"
+  NODES_INSERTION: 
+    - "random, 128, (0.1, 0.9), (2, 5), (mean, sum), (1, 5)"
+  NODES_DELETION: 
+    - "random, 128, (0.1, 0.9)"
+  NODES_MODIFICATION:
+    - "random, 128, (0.1, 0.5), (2, 5), (mean, sum), (1, 5)"
+  NODE_FEATURE_MASKING: 
+    - "random, 128, (0.1, 0.9)"
+  RANDOM_AMPLITUDE_SCALING_SINGLE:
+    - "random, 128, (0.2, 0.8), (1.2, 1.8)"
+  RANDOM_AMPLITUDE_SCALING_MULTIVARIATE:
+    - "random, 128, (0.2, 0.8), (1.2, 1.8)"
+  
+# * hyperpaprameter for boosting
+BiAS:
+  SAMPLE: 512
+  PAIRS: 512
+  LAMBDA: 0.80
+  ALPHA: 3.00
+  REWEIGHT: False
+  PATIENCE: 1
+  DECREASE_FACTOR: 0.5

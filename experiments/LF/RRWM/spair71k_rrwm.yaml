@@ -1,0 +1,90 @@
+MODEL_NAME: rrwm
+DATASET_NAME: spair71k
+
+DATASET_FULL_NAME: SPair71k
+
+CONFIG_NAME: spair71k_rrwm
+CONFIG_DESCRIPTION: test
+
+MODULE: models.LF.model
+BACKBONE: VGG16_bn
+
+BATCH_SIZE: 8
+DATALOADER_NUM: 4
+FP16: False
+
+RANDOM_SEED: 123
+
+# available GPU ids
+GPUS:
+  - 0
+#  - 1
+
+# Problem configuration
+PROBLEM:
+  TYPE: 2GM
+  RESCALE:  # rescaled image size
+    - 256
+    - 256
+  SRC_OUTLIER: True
+  TGT_OUTLIER: True
+  SSL: False
+  FILTER: unfiltered
+
+# Graph construction settings
+GRAPH:
+  SRC_GRAPH_CONSTRUCT: tri
+  TGT_GRAPH_CONSTRUCT: tri
+  SYM_ADJACENCY: True
+
+# Training settings
+TRAIN:
+  # start, end epochs
+  START_EPOCH: 0
+  NUM_EPOCHS: 1
+
+  LOSS_FUNC: 
+    - perm
+
+  OPTIMIZER: Adam
+
+  # * backbone
+  FINETUNE_BACKBONE: False
+  SEPARATE_BACKBONE_LR: True
+  BACKBONE_LR: 1.e-5
+
+  # * sconv
+  FINETUNE_ENCODER: True
+  SEPARATE_ENCODER_LR: False
+  BACKBONE_LR: 1.e-4
+
+  LR: 0
+  MOMENTUM: 0.9
+  LR_DECAY: 0.1
+  LR_STEP:  # (in epochs)
+    - 5
+
+  EPOCH_ITERS: 500  # iterations per epoch
+
+  CLASS: none
+
+  # * validation and early stopping
+  SPLIT: 1
+  DELTA: 0.001
+  PATIENCE: 1
+
+  SAMPLES:
+    - 0
+    - 0
+
+# Evaluation settings
+EVAL:
+  EPOCH: 10  # epoch to be tested
+  SAMPLES: 1000  # number of tested pairs for each class
+
+# model parameters
+LF:
+  SOLVER: RRWM
+  EDGE_FEATURE: cat
+  FEATURE_CHANNEL: 512
+  GAUSSIAN_SIGMA: 1
